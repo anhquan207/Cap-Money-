@@ -1,641 +1,152 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CapMoney - Quản Lý Thu Chi</title>
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    :root {
-      --bg-color: #f4f5f9;
-      --card-bg: #ffffff;
-      --text-main: #1c1c1e;
-      --text-sub: #8e8e93;
-      --primary: #007aff;
-      --income: #34c759;
-      --expense: #ff3b30;
-      --border: #e5e5ea;
-      --radius: 16px;
-    }
-
-    [data-theme="dark"] {
-      --bg-color: #121212;
-      --card-bg: #1e1e1e;
-      --text-main: #f2f2f7;
-      --text-sub: #8e8e93;
-      --border: #2c2c2e;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-    }
-
-    #app {
-      width: 100%;
-      max-width: 480px;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      background-color: var(--bg-color);
-      overflow: hidden;
-    }
-
-    /* Header */
-    header {
-      padding: 16px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background-color: var(--card-bg);
-      border-bottom: 1px solid var(--border);
-    }
-
-    header h1 {
-      font-size: 20px;
-      font-weight: 700;
-    }
-
-    .theme-toggle {
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    /* Views Container */
-    .content-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      padding-bottom: 80px;
-    }
-
-    .view {
-      display: none;
-    }
-
-    .view.active {
-      display: block;
-    }
-
-    /* Summary Card */
-    .summary-card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-      margin-bottom: 20px;
-    }
-
-    .balance-label {
-      font-size: 13px;
-      color: var(--text-sub);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .balance-amount {
-      font-size: 32px;
-      font-weight: 800;
-      margin: 8px 0 16px 0;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      border-top: 1px solid var(--border);
-      padding-top: 16px;
-    }
-
-    .stat-item .label {
-      font-size: 12px;
-      color: var(--text-sub);
-    }
-
-    .stat-item .val {
-      font-size: 16px;
-      font-weight: 700;
-      margin-top: 4px;
-    }
-
-    .stat-item .val.inc { color: var(--income); }
-    .stat-item .val.exp { color: var(--expense); }
-
-    /* Section Header */
-    .section-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin: 16px 0 12px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    /* Transaction List */
-    .tx-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .tx-item {
-      background: var(--card-bg);
-      padding: 14px 16px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-    }
-
-    .tx-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .tx-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      background: rgba(0,0,0,0.04);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
-
-    .tx-title {
-      font-weight: 600;
-      font-size: 15px;
-    }
-
-    .tx-date {
-      font-size: 12px;
-      color: var(--text-sub);
-      margin-top: 2px;
-    }
-
-    .tx-amount {
-      font-weight: 700;
-      font-size: 15px;
-    }
-
-    .tx-amount.inc { color: var(--income); }
-    .tx-amount.exp { color: var(--expense); }
-
-    /* Bottom Navigation */
-    nav {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      background: var(--card-bg);
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-      z-index: 10;
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      background: none;
-      border: none;
-      color: var(--text-sub);
-      font-size: 11px;
-      cursor: pointer;
-    }
-
-    .nav-item.active {
-      color: var(--primary);
-      font-weight: 600;
-    }
-
-    .nav-icon {
-      font-size: 20px;
-    }
-
-    /* FAB - Add Button */
-    .fab {
-      position: absolute;
-      bottom: 70px;
-      right: 20px;
-      width: 56px;
-      height: 56px;
-      border-radius: 28px;
-      background: var(--primary);
-      color: #fff;
-      font-size: 28px;
-      border: none;
-      box-shadow: 0 4px 12px rgba(0,122,255,0.4);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 20;
-    }
-
-    /* Modal Sheet */
-    .modal {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.4);
-      display: none;
-      justify-content: flex-end;
-      flex-direction: column;
-      z-index: 100;
-    }
-
-    .modal.active {
-      display: flex;
-    }
-
-    .modal-content {
-      background: var(--card-bg);
-      border-radius: 24px 24px 0 0;
-      padding: 24px 20px;
-      animation: slideUp 0.25s ease-out;
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(100%); }
-      to { transform: translateY(0); }
-    }
-
-    .type-switcher {
-      display: flex;
-      background: rgba(0,0,0,0.05);
-      padding: 4px;
-      border-radius: 10px;
-      margin-bottom: 16px;
-    }
-
-    .type-btn {
-      flex: 1;
-      padding: 8px;
-      border: none;
-      border-radius: 8px;
-      background: transparent;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .type-btn.active.exp {
-      background: var(--card-bg);
-      color: var(--expense);
-    }
-
-    .type-btn.active.inc {
-      background: var(--card-bg);
-      color: var(--income);
-    }
-
-    .input-group {
-      margin-bottom: 14px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 12px;
-      color: var(--text-sub);
-      margin-bottom: 6px;
-    }
-
-    .input-group input, .input-group select {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: var(--bg-color);
-      color: var(--text-main);
-      font-size: 15px;
-      outline: none;
-    }
-
-    .btn-submit {
-      width: 100%;
-      padding: 14px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 16px;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-
-    /* Chart Container */
-    .chart-box {
-      background: var(--card-bg);
-      padding: 16px;
-      border-radius: var(--radius);
-      margin-top: 12px;
-    }
-  </style>
-</head>
-<body>
-
-  <div id="app">
-    <!-- Header -->
-    <header>
-      <h1>CapMoney</h1>
-      <button class="theme-toggle" id="themeBtn">🌙</button>
-    </header>
-
-    <!-- Main Content Views -->
-    <div class="content-area">
-      <!-- Dashboard View -->
-      <div id="view-dashboard" class="view active">
-        <div class="summary-card">
-          <div class="balance-label">Tổng số dư</div>
-          <div class="balance-amount" id="totalBalance">0 ₫</div>
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="label">Tổng Thu</div>
-              <div class="val inc" id="totalInc">+0 ₫</div>
-            </div>
-            <div class="stat-item">
-              <div class="label">Tổng Chi</div>
-              <div class="val exp" id="totalExp">-0 ₫</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="section-title">
-          <span>Giao dịch gần đây</span>
-        </div>
-        <div class="tx-list" id="txList"></div>
-      </div>
-
-      <!-- Stats View -->
-      <div id="view-stats" class="view">
-        <div class="section-title">Thống kê chi tiêu</div>
-        <div class="chart-box">
-          <canvas id="expenseChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Floating Add Button -->
-    <button class="fab" id="openModalBtn">＋</button>
-
-    <!-- Navigation Bar -->
-    <nav>
-      <button class="nav-item active" data-target="view-dashboard">
-        <span class="nav-icon">📊</span>
-        <span>Tổng quan</span>
-      </button>
-      <button class="nav-item" data-target="view-stats">
-        <span class="nav-icon">📈</span>
-        <span>Thống kê</span>
-      </button>
-    </nav>
-
-    <!-- Add Transaction Modal -->
-    <div class="modal" id="txModal">
-      <div class="modal-content">
-        <div class="type-switcher">
-          <button class="type-btn active exp" id="btnExpType">Chi tiêu</button>
-          <button class="type-btn inc" id="btnIncType">Thu nhập</button>
-        </div>
-        <form id="txForm">
-          <div class="input-group">
-            <label>Số tiền (VNĐ)</label>
-            <input type="number" id="txAmount" placeholder="0" required>
-          </div>
-          <div class="input-group">
-            <label>Danh mục</label>
-            <select id="txCategory"></select>
-          </div>
-          <div class="input-group">
-            <label>Ghi chú</label>
-            <input type="text" id="txNote" placeholder="Vd: Ăn sáng, Lương tháng 9...">
-          </div>
-          <button type="submit" class="btn-submit">Lưu Giao Dịch</button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // State Management
-    let state = {
-      transactions: JSON.parse(localStorage.getItem('capmoney_tx')) || [
-        { id: 1, type: 'expense', amount: 45000, category: 'Food', note: 'Phở bò', date: '2026-09-18' },
-        { id: 2, type: 'income', amount: 15000000, category: 'Salary', note: 'Lương', date: '2026-09-15' }
-      ],
-      currentType: 'expense',
-      theme: localStorage.getItem('capmoney_theme') || 'light'
-    };
-
-    const categories = {
-      expense: [
-        { id: 'Food', name: 'Ăn uống', icon: '🍜' },
-        { id: 'Shopping', name: 'Mua sắm', icon: '🛍️' },
-        { id: 'Transport', name: 'Di chuyển', icon: '🚗' },
-        { id: 'Bills', name: 'Hóa đơn', icon: '💡' }
-      ],
-      income: [
-        { id: 'Salary', name: 'Tiền lương', icon: '💵' },
-        { id: 'Bonus', name: 'Thưởng', icon: '🎁' }
-      ]
-    };
-
-    let chartInstance = null;
-
-    // Formatting Helpers
-    const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-
-    // Save State
-    function saveState() {
-      localStorage.setItem('capmoney_tx', JSON.stringify(state.transactions));
-      render();
-    }
-
-    // Toggle Theme
-    function initTheme() {
-      document.documentElement.setAttribute('data-theme', state.theme);
-      document.getElementById('themeBtn').textContent = state.theme === 'dark' ? '☀️' : '🌙';
-    }
-
-    document.getElementById('themeBtn').addEventListener('click', () => {
-      state.theme = state.theme === 'light' ? 'dark' : 'light';
-      localStorage.setItem('capmoney_theme', state.theme);
-      initTheme();
-    });
-
-    // Navigation
-    document.querySelectorAll('.nav-item').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        
-        const target = e.currentTarget;
-        target.classList.add('active');
-        document.getElementById(target.dataset.target).classList.add('active');
-
-        if(target.dataset.target === 'view-stats') renderChart();
-      });
-    });
-
-    // Modal Handling
-    const modal = document.getElementById('txModal');
-    document.getElementById('openModalBtn').addEventListener('click', () => {
-      modal.classList.add('active');
-      renderCategories();
-    });
-
-    modal.addEventListener('click', (e) => {
-      if(e.target === modal) modal.classList.remove('active');
-    });
-
-    // Type Switcher inside Modal
-    const btnExp = document.getElementById('btnExpType');
-    const btnInc = document.getElementById('btnIncType');
-
-    btnExp.addEventListener('click', () => {
-      state.currentType = 'expense';
-      btnExp.className = 'type-btn active exp';
-      btnInc.className = 'type-btn inc';
-      renderCategories();
-    });
-
-    btnInc.addEventListener('click', () => {
-      state.currentType = 'income';
-      btnInc.className = 'type-btn active inc';
-      btnExp.className = 'type-btn exp';
-      renderCategories();
-    });
-
-    function renderCategories() {
-      const select = document.getElementById('txCategory');
-      select.innerHTML = categories[state.currentType]
-        .map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`)
-        .join('');
-    }
-
-    // Add Transaction Submit
-    document.getElementById('txForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const amount = parseFloat(document.getElementById('txAmount').value);
-      const category = document.getElementById('txCategory').value;
-      const note = document.getElementById('txNote').value;
-
-      if (!amount) return;
-
-      const newTx = {
-        id: Date.now(),
-        type: state.currentType,
-        amount,
-        category,
-        note: note || (state.currentType === 'expense' ? 'Chi tiêu' : 'Thu nhập'),
-        date: new Date().toISOString().split('T')[0]
-      };
-
-      state.transactions.unshift(newTx);
-      saveState();
-      
-      // Reset & Close
-      document.getElementById('txForm').reset();
-      modal.classList.remove('active');
-    });
-
-    // Main Render Function
-    function render() {
-      let income = 0;
-      let expense = 0;
-
-      const txListEl = document.getElementById('txList');
-      txListEl.innerHTML = '';
-
-      state.transactions.forEach(tx => {
-        if (tx.type === 'income') income += tx.amount;
-        else expense += tx.amount;
-
-        const catObj = [...categories.expense, ...categories.income].find(c => c.id === tx.category) || { icon: '💰' };
-
-        txListEl.innerHTML += `
-          <div class="tx-item">
-            <div class="tx-left">
-              <div class="tx-icon">${catObj.icon}</div>
-              <div>
-                <div class="tx-title">${tx.note}</div>
-                <div class="tx-date">${tx.date}</div>
-              </div>
-            </div>
-            <div class="tx-amount ${tx.type === 'income' ? 'inc' : 'exp'}">
-              ${tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.amount)}
-            </div>
-          </div>
-        `;
-      });
-
-      document.getElementById('totalBalance').textContent = formatCurrency(income - expense);
-      document.getElementById('totalInc').textContent = '+' + formatCurrency(income);
-      document.getElementById('totalExp').textContent = '-' + formatCurrency(expense);
-    }
-
-    // Chart Render
-    function renderChart() {
-      const ctx = document.getElementById('expenseChart').getContext('2d');
-      
-      // Group expenses by category
-      const expData = {};
-      state.transactions.filter(t => t.type === 'expense').forEach(t => {
-        expData[t.category] = (expData[t.category] || 0) + t.amount;
-      });
-
-      const labels = Object.keys(expData).map(catId => {
-        const item = categories.expense.find(c => c.id === catId);
-        return item ? item.name : catId;
-      });
-      const data = Object.values(expData);
-
-      if (chartInstance) chartInstance.destroy();
-
-      chartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: data,
-            backgroundColor: ['#ff9500', '#ff2d55', '#5856d6', '#4cd964', '#5ac8fa']
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: 'bottom' }
-          }
-        }
-      });
-    }
-
-    // Init App
-    initTheme();
-    render();
-  </script>
-</body>
-</html>
+import 'package:flutter/material.dart';
+
+void main() => runApp(const LoveGameApp());
+
+class LoveGameApp extends StatelessWidget {
+  const LoveGameApp({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Vũ & Trà',
+      home: const GameScreen(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+class GameScreen extends StatefulWidget {
+  const GameScreen({super.key});
+  @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  final String playerName = "Vũ Hoàng";
+  final String loveName = "Trà";
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFFF69B4), Color(0xFF9B59B6)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "$playerName & $loveName",
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  shadows: [Shadow(color: Colors.black26, blurRadius: 5)],
+                ),
+              ),
+              const SizedBox(height: 50),
+
+              // Nhân vật (placeholder 2D - bạn thay bằng ảnh Liên Quân/Genshin bất cứ lúc nào)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    children: [
+                      const Icon(Icons.person, size: 120, color: Colors.blueAccent),
+                      Text(playerName, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  const Text("❤️", style: TextStyle(fontSize: 100, color: Colors.red)),
+                  Column(
+                    children: [
+                      const Icon(Icons.person, size: 120, color: Colors.pinkAccent),
+                      Text(loveName, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 60),
+
+              // 3 nút đúng như bạn nói
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // Nút 1: Vuốt má
+                  ElevatedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Vũ Hoàng vuốt má Trà! 😊"), duration: Duration(seconds: 1)),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.pink,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
+                    ),
+                    child: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.hand_back, size: 55, color: Colors.white),
+                        SizedBox(height: 8),
+                        Text("Vuốt má", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                      ],
+                    ),
+                  ),
+
+                  // Nút 2: Ôm
+                  ElevatedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Vũ Hoàng ôm Trà! 💕"), duration: Duration(seconds: 1)),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
+                    ),
+                    child: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.favorite, size: 55, color: Colors.white),
+                        SizedBox(height: 8),
+                        Text("Ôm", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                      ],
+                    ),
+                  ),
+
+                  // Nút 3: Hôn
+                  ElevatedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Vũ Hoàng hôn Trà! 💋"), duration: Duration(seconds: 1)),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purple,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
+                    ),
+                    child: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.kiss, size: 55, color: Colors.white),
+                        SizedBox(height: 8),
+                        Text("Hôn", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
