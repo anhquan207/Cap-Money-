@@ -1,152 +1,80 @@
-import 'package:flutter/material.dart';
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Vũ & Trà</title>
+  <style>
+    body { margin:0; background: linear-gradient(#FF69B4, #9B59B6); color:#fff; font-family:Arial; }
+    #app { text-align:center; padding-top:50px; }
+    .characters { display:flex; justify-content:space-evenly; align-items:center; margin:40px 0; }
+    .avatar { text-align:center; }
+    .avatar img { width:160px; height:160px; border-radius:50%; border:5px solid white; box-shadow:0 0 20px rgba(255,255,255,0.5); }
+    .heart { font-size:120px; margin:0 20px; }
+    .btn-container { display:flex; gap:30px; justify-content:center; }
+    .btn {
+      width:140px; height:140px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      font-size:22px; font-weight:bold; color:white; text-shadow:2px 2px 5px rgba(0,0,0,0.5); cursor:pointer;
+      box-shadow:0 10px 30px rgba(0,0,0,0.4);
+    }
+    #btn1 { background:#FF69B4; }
+    #btn2 { background:#FF4500; }
+    #btn3 { background:#9B59B6; }
+    .action { margin-top:30px; font-size:20px; padding:15px 30px; background:rgba(255,255,255,0.2); border-radius:15px; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>Vũ Hoàng & Trà</h1>
+    
+    <div class="characters">
+      <div class="avatar">
+        <img id="vuhuong" src="https://i.imgur.com/6vK8vL5.png" alt="Vũ Hoàng">
+        <p>Vũ Hoàng</p>
+      </div>
+      <div class="heart">❤️</div>
+      <div class="avatar">
+        <img id="tra" src="https://i.imgur.com/9pX3wL6.png" alt="Trà">
+        <p>Trà</p>
+      </div>
+    </div>
 
-void main() => runApp(const LoveGameApp());
+    <div class="btn-container">
+      <div id="btn1" class="btn" onclick="action(1)">
+        <span style="font-size:65px;">👋</span>
+        <p>Vuốt má</p>
+      </div>
+      <div id="btn2" class="btn" onclick="action(2)">
+        <span style="font-size:65px;">🤗</span>
+        <p>Ôm</p>
+      </div>
+      <div id="btn3" class="btn" onclick="action(3)">
+        <span style="font-size:65px;">💋</span>
+        <p>Hôn</p>
+      </div>
+    </div>
 
-class LoveGameApp extends StatelessWidget {
-  const LoveGameApp({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Vũ & Trà',
-      home: const GameScreen(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
+    <div class="action" id="message"></div>
+  </div>
 
-class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
-  @override
-  State<GameScreen> createState() => _GameScreenState();
-}
-
-class _GameScreenState extends State<GameScreen> {
-  final String playerName = "Vũ Hoàng";
-  final String loveName = "Trà";
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFF69B4), Color(0xFF9B59B6)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "$playerName & $loveName",
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  shadows: [Shadow(color: Colors.black26, blurRadius: 5)],
-                ),
-              ),
-              const SizedBox(height: 50),
-
-              // Nhân vật (placeholder 2D - bạn thay bằng ảnh Liên Quân/Genshin bất cứ lúc nào)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Column(
-                    children: [
-                      const Icon(Icons.person, size: 120, color: Colors.blueAccent),
-                      Text(playerName, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  const Text("❤️", style: TextStyle(fontSize: 100, color: Colors.red)),
-                  Column(
-                    children: [
-                      const Icon(Icons.person, size: 120, color: Colors.pinkAccent),
-                      Text(loveName, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 60),
-
-              // 3 nút đúng như bạn nói
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Nút 1: Vuốt má
-                  ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Vũ Hoàng vuốt má Trà! 😊"), duration: Duration(seconds: 1)),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.pink,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
-                    ),
-                    child: const Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.hand_back, size: 55, color: Colors.white),
-                        SizedBox(height: 8),
-                        Text("Vuốt má", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                      ],
-                    ),
-                  ),
-
-                  // Nút 2: Ôm
-                  ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Vũ Hoàng ôm Trà! 💕"), duration: Duration(seconds: 1)),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
-                    ),
-                    child: const Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.favorite, size: 55, color: Colors.white),
-                        SizedBox(height: 8),
-                        Text("Ôm", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                      ],
-                    ),
-                  ),
-
-                  // Nút 3: Hôn
-                  ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Vũ Hoàng hôn Trà! 💋"), duration: Duration(seconds: 1)),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
-                    ),
-                    child: const Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.kiss, size: 55, color: Colors.white),
-                        SizedBox(height: 8),
-                        Text("Hôn", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+  <script>
+    function action(type) {
+      let msg = document.getElementById('message');
+      if (type === 1) {
+        msg.innerHTML = 'Vũ Hoàng vuốt má Trà! 😊';
+      } else if (type === 2) {
+        msg.innerHTML = 'Vũ Hoàng ôm Trà! 💕';
+      } else if (type === 3) {
+        msg.innerHTML = 'Vũ Hoàng hôn Trà! 💋';
+      }
+      msg.style.color = '#fff';
+      msg.style.fontWeight = 'bold';
+      msg.style.transition = 'all 0.3s';
+      
+      // Hiệu ứng rung nhẹ
+      const btns = document.querySelectorAll('.btn');
+      btns[type-1].style.transform = 'scale(0.95)';
+      setTimeout(() => btns[type-1].style.transform = 'scale(1)', 150);
+    }
+  </script>
+</body>
+</html>
