@@ -59,18 +59,12 @@
   <script>
     function action(type) {
       let msg = document.getElementById('message');
-      if (type === 1) {
-        msg.innerHTML = 'Vũ Hoàng vuốt má Trà! 😊';
-      } else if (type === 2) {
-        msg.innerHTML = 'Vũ Hoàng ôm Trà! 💕';
-      } else if (type === 3) {
-        msg.innerHTML = 'Vũ Hoàng hôn Trà! 💋';
-      }
+      if (type === 1) msg.innerHTML = 'Vũ Hoàng vuốt má Trà! 😊';
+      else if (type === 2) msg.innerHTML = 'Vũ Hoàng ôm Trà! 💕';
+      else if (type === 3) msg.innerHTML = 'Vũ Hoàng hôn Trà! 💋';
       msg.style.color = '#fff';
       msg.style.fontWeight = 'bold';
       msg.style.transition = 'all 0.3s';
-      
-      // Hiệu ứng rung nhẹ
       const btns = document.querySelectorAll('.btn');
       btns[type-1].style.transform = 'scale(0.95)';
       setTimeout(() => btns[type-1].style.transform = 'scale(1)', 150);
